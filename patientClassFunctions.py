@@ -18,7 +18,7 @@ class patient:
         file_adds = filepath + '/' + input_fileName
         file = pd.ExcelFile(file_adds)
         sheet_Names = file.sheet_names
-        if 'redcap' in sheet_Names:
+        if 'RedCap' in sheet_Names:
             #do the thing for getting patient info
             #check what the labels are for the RedCap data
             df = pd.read_excel(input_fileName, sheet_name= 'redcap')
