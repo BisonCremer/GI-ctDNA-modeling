@@ -21,13 +21,17 @@ class patient:
         if 'RedCap' in sheet_Names:
             #do the thing for getting patient info
             #check what the labels are for the RedCap data
-            df = pd.read_excel(input_fileName, sheet_name= 'redcap')
+            df = pd.read_excel(input_fileName, sheet_name= 'RedCap')
+            df.index = df['Unnamed: 0']
+            df = df.drop('Unnamed: 0', axis =1)
+            df.columns = [0]
+            df = df.T
             self.ptDemographics = df
-            self.survival = df.at[0,"Survival Time (Months)"]
+            # self.survival = df.at[0,"Survival Time (Months)"]
             self.age = df.at[0,"age"] 
             self.sex = df.at[0,"sex"]
             self.ecog = df.at[0,"ecog"]
-            self.cci = df.at[0,"comorbidity_cci"] 
+            self.cci = df.at[0,"comoborbidity_cci"] 
             self.primarytumor = df.at[0, "tumor_type"] #1, Esophagogastric | 2, HCC | 3, Biliary Tract | 4, Pancreatic | 5, Colorectal | 6, Anal | 7, NET | 8, Other GI cancer
             self.primaryhisto = df.at[0, "tumor_histology"]
             self.primarytumorEnrollment = df.at[0, "primary_tumor"] #binary for presence at time of enrollment
@@ -44,9 +48,9 @@ class patient:
             self.metEnrollmentOther = df.at[0, "site_of_metastasis___6"]
 
             #create a label for the presence of mets at enrollment
-
-
-        else: print("no patient identifying information")
+        else: 
+            self.ptDemographics = False
+            print(ptID + " no patient identifying information")
 
         #now iterate through the list of sheets to import the patient data 
         #pull the full list of data on all labs and lab results
@@ -87,6 +91,7 @@ class patient:
 
         if 'NSR' in sheet_Names:
             self.NSR = pd.read_excel(input_fileName, sheet_name= 'NSR')
+            self.NSRnumb = len(self.NSR.loc['collection_number']) #collect the length of this column 
         else: self.NSR = False
 
 
@@ -240,6 +245,15 @@ def GetListofPTfiles(directory, fileExtension, fileCommon):
         if fileCommon in file and file.endswith(fileExtension):
             outListFiles.append(file)
     return outListFiles
+
+# def GetListofPTfiles(directory, fileExtension):
+#     listFileNames = os.listdir(directory)
+#     outListFiles = []
+#     #loop through file names
+#     for file in listFileNames:
+#         if file.endswith(fileExtension):
+#             outListFiles.append(file)
+#     return outListFiles
 
 #get amyloid status dictionary inputs, sort ptIDs to lists based on amyloid status 
 def getListSortedByAmyloid(amyloidDictionary, listPositive, listNegative, listOther,
