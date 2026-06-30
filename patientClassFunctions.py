@@ -46,8 +46,25 @@ class patient:
             self.metEnrollmentBone = df.at[0, "site_of_metastasis___4"]
             self.metEnrollmentLymphNode = df.at[0, "site_of_metastasis___5"]
             self.metEnrollmentOther = df.at[0, "site_of_metastasis___6"]
+            
 
-            #create a label for the presence of mets at enrollment
+            #creates a list of met locations at enrollment as single feature. number corresponds to the location
+            self.metEnrollmentList = []
+            if self.metEnrollmentLiver == 1:
+                self.metEnrollmentList.append(1)
+            if self.metEnrollmentLung == 1:
+                self.metEnrollmentList.append(2)
+            if self.metEnrollmentPeritoneum == 1:
+                self.metEnrollmentList.append(3)
+            if self.metEnrollmentBone == 1: 
+                self.metEnrollmentList.append(4)
+            if self.metEnrollmentLymphNode == 1:
+                self.metEnrollmentList.append(5)
+            if self.metEnrollmentOther == 1: 
+                self.metEnrollmentList.append(6)
+
+            self.metsAtEnrollment = len(self.metEnrollmentList)
+
         else: 
             self.ptDemographics = False
             print(ptID + " no patient identifying information")
@@ -91,7 +108,7 @@ class patient:
 
         if 'NSR' in sheet_Names:
             self.NSR = pd.read_excel(input_fileName, sheet_name= 'NSR')
-            self.NSRnumb = len(self.NSR.loc['collection_number']) #collect the length of this column 
+            self.NSRnumb = len(self.NSR['collection_number']) #collect the length of this column 
         else: self.NSR = False
 
 
