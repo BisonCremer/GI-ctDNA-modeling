@@ -356,3 +356,91 @@ def outputFiguresPath(fileName_header, fileName_mid, fileName_suff, parent_dir, 
         #the output path can be used to save the figure
         return new_filepath
         # plt.savefig(new_filepath, bbox_inches = 'tight')
+
+
+#from CALMM project for fitting data to curves. may need adjusted to work with the new dataset.
+
+def prepDataForFit_v2(dataframe, time, dataColumn, transform = ["none"], shift = False):
+    dataValues =dataframe[[time, dataColumn]] #collect the data
+
+    #clean data for null or 0 data and remove any negative y values
+    #negative y values are not physiologic
+    if transform == ["none"]:
+        dataValues = dataValues.dropna(axis = 'rows').loc[dataValues[dataColumn]>=0]
+        x_values = dataValues[[time]] #time information
+        y_values = dataValues[dataColumn] #collect the y values
+        baseline = y_values.iloc[0]
+        if shift == True:
+            y_values_shift = y_values - baseline
+            y_values = y_values_shift
+    elif transform == ["ln"]:
+        # ln tranform can't handle 0 values
+        dataValues = dataValues.dropna(axis = 'rows').loc[dataValues[dataColumn]>=0]
+        dataValues[dataColumn] = [value + 1 for value in dataValues[dataColumn]]
+        x_values = dataValues[[time]] #time information
+        y_values = dataValues[dataColumn] #collect the y values
+        y_values = np.log(y_values)
+        baseline = y_values.iloc[0]
+        if shift == True:
+            y_values_shift = y_values - baseline
+            y_values = y_values_shift
+
+    datalength = len(y_values)
+
+    return x_values, y_values, datalength, baseline
+
+#linear model fits using sk learn without adjustments for the baseline, from CALMM project
+#will likely need improvements to work with current data
+from sklearn.linear_model import LinearRegression 
+from sklearn.metrics import mean_squared_error, r2_score
+from scipy.optimize import curve_fit
+
+def linear_model_force(x, a):
+    return a * x 
+
+def linear_model_fit_v2(x, y, datalength, baseline, forced = False, one_point_r2 = 0):
+
+    if datalength >1:
+        if forced == False:
+            #fit the data to a linear model scikitlearn linear regression
+            # popt, pcov = curve_fit(linear_model_force, x, y)
+            regression = LinearRegression().fit(x,y)
+            #get the slope and intercept 
+            coef = float(regression.coef_)
+            intercept = regression.intercept_
+
+            #test predictions
+            y_prediction = regression.predict(x)
+
+            #calculate the mean squared error
+            mse = mean_squared_error(y, y_prediction)
+            #calculate the coeficient of determination of the fit
+            # r2 = r2_score(y, y_prediction)
+            r2 = regression.score(x,y)
+
+        if forced == True:
+            x = x.squeeze()
+            y = y.squeeze()
+            #fit the data to a linear model using scipy curve_fit
+            popt, pcov = curve_fit(linear_model_force, x, y)
+            #get the slope and intercept from the popt array
+            coef = popt[0]
+            intercept = baseline
+
+            #test predictions
+            y_prediction = linear_model_force(x, coef)
+
+            #calculate the mean squared error
+            mse = mean_squared_error(y, y_prediction)
+            #calculate the coeficient of determination of the fit
+            r2 = r2_score(y, y_prediction)
+
+    if datalength  ==1: 
+        #if the data length is 1, then set slope to 0, set the intercept to the recorded value
+        coef = 0
+        intercept = baseline
+        y_prediction = baseline #for plots
+        mse = baseline
+        r2 = one_point_r2
+
+    return coef, intercept, mse, r2, y_prediction
