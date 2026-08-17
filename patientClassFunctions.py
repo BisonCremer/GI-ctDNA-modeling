@@ -121,6 +121,12 @@ class patient:
         else: 
             self.RECIST_locs = False
 
+        if 'BTOClinical' in sheet_Names:
+            self.BTOClinical =  pd.read_excel(input_fileName, sheet_name= 'BTOClinical')
+            # self.ImmunoTxBinaryCol = self.BTOClinical['Immunotherapy'] #gets the whole column
+            # self.BTOcurrentReg = self.BTOClinical['Current_Regimen']
+
+
 
 
 # End of patient class
