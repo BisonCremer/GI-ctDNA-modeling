@@ -385,7 +385,7 @@ def prepDataForFit_v2(dataframe, time, dataColumn, transform = ["none"], shift =
         dataValues = dataValues.dropna(axis = 'rows').loc[dataValues[dataColumn]>=0]
         x_values = dataValues[[time]] #time information
         y_values = dataValues[dataColumn] #collect the y values
-        baseline = y_values.iloc[0]
+        baseline = y_values[0]
         if shift == True:
             y_values_shift = y_values - baseline
             y_values = y_values_shift
@@ -396,7 +396,36 @@ def prepDataForFit_v2(dataframe, time, dataColumn, transform = ["none"], shift =
         x_values = dataValues[[time]] #time information
         y_values = dataValues[dataColumn] #collect the y values
         y_values = np.log(y_values)
-        baseline = y_values.iloc[0]
+        baseline = y_values[0]
+        if shift == True:
+            y_values_shift = y_values - baseline
+            y_values = y_values_shift
+
+    datalength = len(y_values)
+
+    return x_values, y_values, datalength, baseline
+
+def prepDataForFit_methyl(dataframe, time, dataColumn, transform = ["none"], shift = False):
+    dataValues =dataframe[[time, dataColumn]] #collect the data
+
+    #clean data for null data. 
+    # data is normalized to buffy by BTO so negative values are real
+    if transform == ["none"]:
+        dataValues = dataValues.dropna(axis = 'rows')
+        x_values = dataValues[[time]] #time information
+        y_values = dataValues[dataColumn] #collect the y values
+        baseline = y_values[0]
+        if shift == True:
+            y_values_shift = y_values - baseline
+            y_values = y_values_shift
+    elif transform == ["ln"]:
+        # ln tranform can't handle 0 values
+        dataValues = dataValues.dropna(axis = 'rows')
+        dataValues[dataColumn] = [value + 1 for value in dataValues[dataColumn]]
+        x_values = dataValues[[time]] #time information
+        y_values = dataValues[dataColumn] #collect the y values
+        y_values = np.log(y_values)
+        baseline = y_values[0]
         if shift == True:
             y_values_shift = y_values - baseline
             y_values = y_values_shift
@@ -422,7 +451,7 @@ def linear_model_fit_v2(x, y, datalength, baseline, forced = False, one_point_r2
             # popt, pcov = curve_fit(linear_model_force, x, y)
             regression = LinearRegression().fit(x,y)
             #get the slope and intercept 
-            coef = float(regression.coef_)
+            coef = float(regression.coef_[0])
             intercept = regression.intercept_
 
             #test predictions
