@@ -111,6 +111,11 @@ class patient:
             self.NSRnumb = len(self.NSR['collection_number']) #collect the length of this column 
         else: self.NSR = False
 
+        if "RECIST" in sheet_Names:
+            self.RECIST = pd.read_excel(input_fileName, sheet_name= 'RECIST')
+        else:
+            self.RECIST = False
+        
         if "RECIST_vtime" in sheet_Names:
             self.RECIST_vtime = pd.read_excel(input_fileName, sheet_name= 'RECIST_vtime')
         else:
